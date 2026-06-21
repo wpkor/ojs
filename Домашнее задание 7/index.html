@@ -1,1 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Курсы валют</title>
+    <style>
+        #loader {
+            display: none;
+            margin: 20px auto;
+        }
+        #loader.loader_active {
+            display: block;
+        }
+        .item {
+            border-bottom: 1px solid #eee;
+            padding: 10px;
+            display: flex;
+            gap: 20px;
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .item__code {
+            font-weight: bold;
+            width: 60px;
+        }
+        .item__value {
+            color: #0066cc;
+        }
+        .item__currency {
+            color: #666;
+        }
+        #items {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .loader-container {
+            text-align: center;
+            padding: 20px;
+        }
+        .loader-text {
+            font-family: Arial, sans-serif;
+            color: #666;
+            margin-top: 10px;
+        }
+        .error {
+            text-align: center;
+            color: red;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+<h1>Курсы валют</h1>
 
+<div class="loader-container" id="loaderContainer">
+    <img
+            id="loader"
+            class="loader_active"
+            src="https://i.postimg.cc/66SGMVs5/mcru-ajax-loader.gif"
+            alt="Загрузка..."
+    />
+    <div class="loader-text" id="loaderText">Загрузка курсов валют...</div>
+</div>
+
+<div id="items"></div>
+
+<script>
+    'use strict';
+
+    const loader = document.getElementById('loader');
+    const itemsContainer = document.getElementById('items');
+    const loaderContainer = document.getElementById('loaderContainer');
+
+    fetch('https://students.netoservices.ru/nestjs-backend/slow-get-courses')
+        .then(response => response.json())
+        .then(data => {
+            loaderContainer.style.display = 'none';
+            const valute = data.response.Valute;
+
+            for (const code in valute) {
+                const currency = valute[code];
+                const itemHTML = `
+        <div class="item">
+          <div class="item__code">${code}</div>
+          <div class="item__value">${currency.Value}</div>
+          <div class="item__currency">руб.</div>
+        </div>
+      `;
+                itemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+            }
+        })
+        .catch(error => {
+            loaderContainer.style.display = 'none';
+            itemsContainer.innerHTML = '<p class="error">Ошибка загрузки данных</p>';
+            console.error('Ошибка:', error);
+        });
+</script>
+</body>
+</html>
