@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Текстовый редактор</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+
+        .editor-container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .toolbar button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+        }
+
+        .btn-clear {
+            background: #e74c3c;
+        }
+
+        .btn-clear:hover {
+            background: #c0392b;
+        }
+
+        .btn-save {
+            background: #3498db;
+        }
+
+        .btn-save:hover {
+            background: #2980b9;
+        }
+
+        #editor {
+            width: 100%;
+            min-height: 250px;
+            padding: 12px;
+            font-size: 15px;
+            font-family: Arial, sans-serif;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        #editor:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .status-bar .saved {
+            color: #27ae60;
+        }
+
+        .status-bar .unsaved {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+<div class="editor-container">
+    <h1>Текстовый редактор</h1>
+
+    <div class="toolbar">
+        <button id="clearBtn" class="btn-clear">Очистить</button>
+        <button id="saveBtn" class="btn-save">Сохранить</button>
+    </div>
+
+    <textarea id="editor" placeholder="Введите текст..."></textarea>
+
+    <div class="status-bar">
+        <span id="statusText">Готово</span>
+        <span id="charCount">Символов: 0</span>
+    </div>
+</div>
+
+<script>
+    'use strict';
+
+    const editor = document.getElementById('editor');
+    const clearBtn = document.getElementById('clearBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const statusText = document.getElementById('statusText');
+    const charCount = document.getElementById('charCount');
+
+    const STORAGE_KEY = 'editor_content';
+    const SAVED_KEY = 'editor_saved_content';
+
+    function saveToStorage() {
+        const text = editor.value;
+        localStorage.setItem(STORAGE_KEY, text);
+        localStorage.setItem(SAVED_KEY, text);
+        statusText.textContent = 'Сохранено';
+        statusText.className = 'saved';
+        updateCharCount();
+    }
+
+    function loadFromStorage() {
+        const savedText = localStorage.getItem(STORAGE_KEY);
+        if (savedText !== null) {
+            editor.value = savedText;
+            statusText.textContent = 'Загружено';
+            statusText.className = 'saved';
+            updateCharCount();
+            return true;
+        }
+        return false;
+    }
+
+    function clearContent() {
+        if (editor.value.trim() === '') {
+            return;
+        }
+
+        if (confirm('Очистить текст?')) {
+            editor.value = '';
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(SAVED_KEY);
+            statusText.textContent = 'Очищено';
+            statusText.className = '';
+            updateCharCount();
+        }
+    }
+
+    function updateCharCount() {
+        charCount.textContent = 'Символов: ' + editor.value.length;
+    }
+
+    function autoSave() {
+        const currentText = editor.value;
+        const savedText = localStorage.getItem(SAVED_KEY);
+
+        if (currentText !== savedText) {
+            statusText.textContent = 'Не сохранено';
+            statusText.className = 'unsaved';
+        } else {
+            statusText.textContent = 'Сохранено';
+            statusText.className = 'saved';
+        }
+
+        localStorage.setItem(STORAGE_KEY, currentText);
+        updateCharCount();
+    }
+
+    const hasSaved = loadFromStorage();
+
+    if (!hasSaved) {
+        editor.value = 'Добро пожаловать! Текст будет сохранен автоматически.';
+        saveToStorage();
+    }
+
+    updateCharCount();
+
+    editor.addEventListener('input', autoSave);
+
+    clearBtn.addEventListener('click', clearContent);
+
+    saveBtn.addEventListener('click', function() {
+        saveToStorage();
+        saveBtn.textContent = 'Сохранено!';
+        setTimeout(function() {
+            saveBtn.textContent = 'Сохранить';
+        }, 1500);
+    });
+
+    window.addEventListener('beforeunload', function() {
+        saveToStorage();
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.key === 's') {
+            event.preventDefault();
+            saveToStorage();
+            saveBtn.textContent = 'Сохранено!';
+            setTimeout(function() {
+                saveBtn.textContent = 'Сохранить';
+            }, 1500);
+        }
+    });
+</script>
+</body>
+</html>
